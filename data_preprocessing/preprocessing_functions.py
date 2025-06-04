@@ -7,7 +7,7 @@ import pandas as pd
 # from sklearn.model_selection import train_test_split
 # from sklearn.preprocessing import OneHotEncoder
 
-# import numpy as np
+import numpy as np
 # import time
 # import GPUtil
 
@@ -37,7 +37,9 @@ def merge_conditions(data, metadata, col_to_insert_before='Label'):
     cols.insert(label_index, cols.pop(cols.index('TemperatureKelvin')))
     cols.insert(label_index + 1, cols.pop(cols.index('PressureBar')))
     data_with_conditions = data_with_conditions[cols]
-    data_with_conditions.drop(columns=['level_0'], inplace=True)
+    # Only drop 'level_0' if it exists in the columns
+    if 'level_0' in data_with_conditions.columns:
+        data_with_conditions.drop(columns=['level_0'], inplace=True)
     return data_with_conditions
 
 def reformat_spectra_df(df):

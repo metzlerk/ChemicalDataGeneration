@@ -14,15 +14,45 @@ https://nvie.com/posts/a-successful-git-branching-model/
 --->
 
 ## Steps to run this repo:
-1. Set up virtual environment with Python 3.10 using ```python3.10 -m venv your_env_name``` for Linux or ```python3.10 -m venv your_env_name``` for Windows. Activate new virtual env with ```source your_env_name/bin/activate``` for macOS/Linux ```.\your_env_name\Scripts\activate``` for Windows. 
-  - If using micromamba:
-    - Create with ```micromamba create -n your_env_name python=3.10```.
-    - Activate with ```micromamba activate your_env_name```.
-<!-- 2. Make sure Python interpreter is pointing to: ```/path/to/your/project/venv/bin/python``` -->
-2. Install packages using ```pip install -r requirements.txt```. Verify correct installation with ```pip list```.
-3. Add virtual environment to ```.gitignore``` as it is unnecessary for GitHub to track.
-4. Create new kernel using ```python -m ipykernel install --user --name=your_kernel_name```.
-5. If necessary, update git config with username and email using ```git config --global user.name "Your Name"``` and ```git config --global user.email "youremail@example.com"```.
+1. Set up a virtual environment with Python 3.10. You can use either venv or conda/micromamba:
+   - Using venv (Linux/macOS):
+     ```bash
+     python3.10 -m venv your_env_name
+     source your_env_name/bin/activate
+     ```
+   - Using venv (Windows):
+     ```cmd
+     python3.10 -m venv your_env_name
+     .\your_env_name\Scripts\activate
+     ```
+   - Using conda:
+     ```bash
+     conda create -n your_env_name python=3.10
+     conda activate your_env_name
+     ```
+   - Using micromamba:
+     ```bash
+     micromamba create -n your_env_name python=3.10
+     micromamba activate your_env_name
+     ```
+2. Install packages using:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   Verify correct installation with:
+   ```bash
+   pip list
+   ```
+3. Add virtual environment to `.gitignore` as it is unnecessary for GitHub to track.
+4. Create new kernel using:
+   ```bash
+   python -m ipykernel install --user --name=your_kernel_name
+   ```
+5. If necessary, update git config with username and email using:
+   ```bash
+   git config --global user.name "Your Name"
+   git config --global user.email "youremail@example.com"
+   ```
 
 ## Steps to run on Turing:
 1. ssh into turing account and run commands ```sinteractive``` and ```tmux```.  (```tmux kill-server``` to kill all existing tmux sessions)

@@ -2,6 +2,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
+import importlib
+import functions as f
+# Reload the functions module after updates
+importlib.reload(f)
 
 data = pd.read_feather('data/test_data.feather')
 

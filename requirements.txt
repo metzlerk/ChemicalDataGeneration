@@ -7,7 +7,7 @@ gputil==1.4.0
 imblearn==0.0 # might need to be imbalanced-learn==0.13.0
 ipykernel==6.29.5
 ipywidgets==8.1.5
-numpy==1.24.4 # most recent version of numpy that works with python 3.8.10
+numpy==1.26.4 # numpy 2.x is not yet compatible with torch, wandb, etc.
 matplotlib==3.7.1
 pandas==1.5.3
 pathlib==1.0.1
@@ -17,7 +17,10 @@ rdkit==2023.9.5
 requests==2.31.0
 scikit-learn==1.2.2
 seaborn==0.13.1
-# torchmetrics==1.3.1 # make sure these are correct
-# torch==2.1.0
-# torchvision==0.16.0
+torchmetrics==1.3.1
+torch==2.1.0
+torchvision==0.16.0
+torchtext==0.16.0
+torchdata==0.7.0
+tqdm==4.67.1
 wandb==0.17.0

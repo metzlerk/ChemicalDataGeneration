@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 
-import wandb
 import itertools
 import GPUtil
 from collections import Counter, OrderedDict
@@ -300,63 +299,63 @@ def flatten_and_bin(predicted_embeddings_batches):
 # ------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------
 
-def run_with_wandb(config, **kwargs):
-    """
-    Initialize a WandB run with the given configuration.
+# def run_with_wandb(config, **kwargs):
+#     """
+#     Initialize a WandB run with the given configuration.
 
-    This function updates the provided configuration with additional keyword 
-    arguments, initializes a WandB run, sets the number of threads for PyTorch, 
-    and determines the device (GPU or CPU) to be used for computations.
+#     This function updates the provided configuration with additional keyword 
+#     arguments, initializes a WandB run, sets the number of threads for PyTorch, 
+#     and determines the device (GPU or CPU) to be used for computations.
 
-    Parameters:
-    ----------
-    config : dict
-        Configuration dictionary containing WandB settings and other parameters.
-        Must include 'wandb_entity', 'wandb_project', and 'threads'.
+#     Parameters:
+#     ----------
+#     config : dict
+#         Configuration dictionary containing WandB settings and other parameters.
+#         Must include 'wandb_entity', 'wandb_project', and 'threads'.
 
-    **kwargs : keyword arguments
-        Additional configuration parameters to be added to the `config`.
-    """
-    config.update(kwargs)
+#     **kwargs : keyword arguments
+#         Additional configuration parameters to be added to the `config`.
+#     """
+#     config.update(kwargs)
 
-    wandb.init(entity=config['wandb_entity'],
-               project=config['wandb_project'],
-               config=config)
+#     wandb.init(entity=config['wandb_entity'],
+#                project=config['wandb_project'],
+#                config=config)
 
-    # Set the number of threads
-    torch.set_num_threads(config['threads'])
+#     # Set the number of threads
+#     torch.set_num_threads(config['threads'])
 
-    # Find out is there is a GPU available
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    if not config['gpu']:
-        device = torch.device('cpu')
-    print(f'Using device: {device}')
+#     # Find out is there is a GPU available
+#     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#     if not config['gpu']:
+#         device = torch.device('cpu')
+#     print(f'Using device: {device}')
 
-# ------------------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------------------
+# # ------------------------------------------------------------------------------------------
+# # ------------------------------------------------------------------------------------------
+# # ------------------------------------------------------------------------------------------
  
 
-def update_wandb_kwargs(wandb_kwargs, updates):
-    """
-    Update a dictionary of WandB keyword arguments with new values.
+# def update_wandb_kwargs(wandb_kwargs, updates):
+#     """
+#     Update a dictionary of WandB keyword arguments with new values.
 
-    Parameters:
-    ----------
-    wandb_kwargs : dict
-        The original dictionary of WandB keyword arguments to be updated.
+#     Parameters:
+#     ----------
+#     wandb_kwargs : dict
+#         The original dictionary of WandB keyword arguments to be updated.
 
-    updates : dict
-        A dictionary containing new values to update in `wandb_kwargs`.
+#     updates : dict
+#         A dictionary containing new values to update in `wandb_kwargs`.
 
-    Returns:
-    -------
-    dict
-        The updated dictionary of WandB keyword arguments.
-    """
-    for key in updates.keys():
-        wandb_kwargs[key] = updates[key]
-    return wandb_kwargs
+#     Returns:
+#     -------
+#     dict
+#         The updated dictionary of WandB keyword arguments.
+#     """
+#     for key in updates.keys():
+#         wandb_kwargs[key] = updates[key]
+#     return wandb_kwargs
 
 # ------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------
@@ -794,9 +793,9 @@ def train_model(
             # Initialize the learning rate scheduler with patience of 5 epochs 
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=patience, factor=0.1, verbose=True)
 
-        wandb_kwargs = update_wandb_kwargs(wandb_kwargs, combo)
+        # wandb_kwargs = update_wandb_kwargs(wandb_kwargs, combo)
 
-        run_with_wandb(config, **wandb_kwargs)
+        # run_with_wandb(config, **wandb_kwargs)
 
         print('--------------------------')
         print('--------------------------')
@@ -815,7 +814,7 @@ def train_model(
                     train_dataset, device, model, criterion, 
                     optimizer, epoch, combo
                     )
-                    wandb.log({'Learning Rate at Final Epoch':final_lr})
+                    # wandb.log({'Learning Rate at Final Epoch':final_lr})
                     # save output pca to weights and biases
                     if save_emb_pca_to_wandb:
                         # plot_pca gets predictions from trained model and plots them
@@ -876,7 +875,7 @@ def train_model(
 
                 # log losses to wandb
                 # if model_type == 'Encoder':
-                wandb.log({f"{model_type} Training Loss": average_loss, f"{model_type} Validation Loss": val_average_loss})
+                # wandb.log({f"{model_type} Training Loss": average_loss, f"{model_type} Validation Loss": val_average_loss})
                 # elif model_type == 'Generator':
                 #     wandb.log({"Generator Training Loss": average_loss, "Generator Validation Loss": val_average_loss})
 
@@ -887,8 +886,8 @@ def train_model(
                     print('-------------------------------------------')
             else:
                 print(f'Validation loss has not improved in {epochs_without_validation_improvement} epochs. Stopping training at epoch {epoch}.')
-                wandb.log({'Early Stopping Ecoch':epoch})
-                wandb.log({'Learning Rate at Final Epoch':final_lr})
+                # wandb.log({'Early Stopping Ecoch':epoch})
+                # wandb.log({'Learning Rate at Final Epoch':final_lr})
                 pf.plot_pca(
                     train_data, combo['batch_size'], model, device, 
                     criterion, sorted_chem_names, all_embeddings_df, 
@@ -915,7 +914,7 @@ def train_model(
         print('-------------------------------------------')
         print('-------------------------------------------')
 
-        wandb.finish()
+        # wandb.finish()
 
     print('Hyperparameters for best model: ')
     for key in best_hyperparams:
@@ -1015,6 +1014,11 @@ def create_dataset_tensors_for_generator(carl_dataset, embedding_preds, device=N
     # del carl_dataset
 
     if device is not None:
+        # Ensure all columns are numeric before converting to torch.Tensor
+        # If not, attempt to convert or drop non-numeric columns
+        if not all([np.issubdtype(dtype, np.number) for dtype in embedding_preds.dtypes]):
+            embedding_preds = embedding_preds.apply(pd.to_numeric, errors='coerce')
+            embedding_preds = embedding_preds.fillna(0)
         embeddings_preds = torch.Tensor(embedding_preds.values).to(device)
         carls = torch.Tensor(carls.values).to(device)
         chem_encodings = torch.Tensor(chem_encodings.values).to(device)
@@ -1253,35 +1257,15 @@ class OneHottoIMSGenerator(nn.Module):
         return x
    
 def set_up_gpu():
+    import torch
     if torch.cuda.is_available():
-        # Get the list of GPUs
-        gpus = GPUtil.getGPUs()
-
-        # Find the GPU with the most free memory
-        best_gpu = max(gpus, key=lambda gpu: gpu.memoryFree)
-
-        # Print details about the selected GPU
-        print(f"Selected GPU ID: {best_gpu.id}")
-        print(f"  Name: {best_gpu.name}")
-        print(f"  Memory Free: {best_gpu.memoryFree} MB")
-        print(f"  Memory Used: {best_gpu.memoryUsed} MB")
-        print(f"  GPU Load: {best_gpu.load * 100:.2f}%")
-
-        # Set the device for later use
-        device = torch.device(f'cuda:{best_gpu.id}')
-        print('Current device ID: ', device)
-
-        # Set the current device in PyTorch
-        torch.cuda.set_device(best_gpu.id)
+        device = torch.device('cuda')
+        print("Current device ID:", device)
+        print("PyTorch current device ID:", torch.cuda.current_device())
+        print("PyTorch current device name:", torch.cuda.get_device_name(device))
     else:
+        print("Using CPU")
         device = torch.device('cpu')
-        print('Using CPU')
-        
-
-    # Confirm the currently selected device in PyTorch
-    print("PyTorch current device ID:", torch.cuda.current_device())
-    print("PyTorch current device name:", torch.cuda.get_device_name(torch.cuda.current_device()))
-
     return device
 
 
@@ -1357,9 +1341,9 @@ def train_generator(
             # Initialize the learning rate scheduler with patience of 5 epochs 
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=patience, factor=0.1, verbose=True)
 
-        wandb_kwargs = update_wandb_kwargs(wandb_kwargs, combo)
+        # wandb_kwargs = update_wandb_kwargs(wandb_kwargs, combo)
 
-        run_with_wandb(config, **wandb_kwargs)
+        # run_with_wandb(config, **wandb_kwargs)
 
         print('--------------------------')
         print('--------------------------')
@@ -1377,7 +1361,7 @@ def train_generator(
                     average_loss, _, _ = train_one_epoch(
                     train_dataset, device, model, criterion, optimizer, epoch, combo
                     )
-                    wandb.log({'Learning Rate at Final Epoch':final_lr})
+                    # wandb.log({'Learning Rate at Final Epoch':final_lr})
                     # save output plots to weights and biases
                     if save_plots_to_wandb:
                         pf.plot_and_save_generator_results(
@@ -1442,7 +1426,7 @@ def train_generator(
                     epochs_without_validation_improvement += 1
 
                 # log losses to wandb
-                wandb.log({f"{model_type} Training Loss": average_loss, f"{model_type} Validation Loss": val_average_loss})
+                # wandb.log({f"{model_type} Training Loss": average_loss, f"{model_type} Validation Loss": val_average_loss})
 
                 if (epoch) % 10 == 0 or epoch == 0:
                     print('Epoch[{}/{}]:'.format(epoch, combo['epochs']))
@@ -1452,8 +1436,8 @@ def train_generator(
     
             else:
                 print(f'Validation loss has not improved in {epochs_without_validation_improvement} epochs. Stopping training at epoch {epoch}.')
-                wandb.log({'Early Stopping Epoch':epoch})
-                wandb.log({'Learning Rate at Final Epoch':final_lr})
+                # wandb.log({'Early Stopping Epoch':epoch})
+                # wandb.log({'Learning Rate at Final Epoch':final_lr})
                 pf.plot_and_save_generator_results(
                     train_data, combo['batch_size'], sorted_chem_names, 
                     model, device, criterion, num_plots, plot_overlap_pca=plot_overlap_pca, 
@@ -1486,7 +1470,7 @@ def train_generator(
         print('-------------------------------------------')
         print('-------------------------------------------')
 
-        wandb.finish()
+        # wandb.finish()
 
     print('Hyperparameters for best model: ')
     for key in best_hyperparams:

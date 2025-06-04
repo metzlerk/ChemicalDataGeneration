@@ -7,4 +7,6 @@ data_gen_env/
 wandb/
 models/trained_models/
 plots/
-models/uninformative_embeddings/wandb/
+models/uninformative_embeddings/wandb/your_env_name/
+CARL/
+slurm*

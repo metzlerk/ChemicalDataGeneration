@@ -2,8 +2,8 @@
 #%%
 # Load Packages and Files:
 import pandas as pd
-val_embeddings_file_path = '../data/encoder_embedding_predictions/val_embeddings.csv'
-val_embs = pd.read_csv(val_embeddings_file_path)
+val_embeddings_file_path = 'CARL/val_carls_one_per_spec.feather'#../data/encoder_embedding_predictions/val_embeddings.csv'
+val_embs = pd.read_feather(val_embeddings_file_path)
 val_embs.head()
 #%%
 
@@ -54,6 +54,14 @@ model_hyperparams = {
     'learning_rate':[.001]#, .001],
     }
 
+# Comment out all wandb lines and related arguments
+config = {
+    # 'wandb_entity': 'catemerfeld',
+    # 'wandb_project': 'ims_encoder_decoder',
+    'gpu':True,
+    'threads':1,
+}
+
 wandb_kwargs = {
     'architecture': architecture,
     'optimizer':'AdamW',
@@ -62,40 +70,33 @@ wandb_kwargs = {
     'target': target_type,
     'early stopping threshold':early_stopping_threshold
 }
-metadata = pd.read_feather('../../scratch/BKG_SIM_ims_acbc_train_v1.1.09_meta.feather')
+metadata = pd.read_feather('../../../../../scratch/cmdunham/BKG_SIM_ims_acbc_train_v1.1.09_meta.feather')
 
 generator_save_path_pt_1 = f'trained_models/{target_type}/'
 generator_save_path_pt_2 = f'{architecture}.pth'
 generator_save_path = f'trained_models/{target_type}/{architecture}.pth'
 synthetic_data_save_path_pt_1 = f'../../scratch/synthetic_data/{target_type}/{architecture}/'
 synthetic_data_save_path_pt_2 = 'synthetic_test_spectra.feather'
-train_file_path = '../../scratch/CARL/train_carls_one_per_spec.feather'
+train_file_path = 'CARL/train_carls_one_per_spec.feather'
 # train_file_path = '../../scratch/train_data.feather'
-train_embeddings_file_path = '../data/encoder_embedding_predictions/train_embeddings.csv'
+train_embeddings_file_path = 'CARL/train_carls_one_per_spec.feather' # '../data/encoder_embedding_predictions/train_embeddings.csv'
 # train_file_path = f'../../scratch/PHIL/train_phils_scaled_to_{scaling_string}_pct.csv'
 # train_embeddings_file_path = f'../../scratch/PHIL/train_embedding_preds_scaled_to_{scaling_string}_pct.feather'
 
-val_file_path = '../../scratch/CARL/val_carls_one_per_spec.feather'
+val_file_path = 'CARL/val_carls_one_per_spec.feather'
 # val_file_path = '../../scratch/val_data.feather'
-val_embeddings_file_path = '../data/encoder_embedding_predictions/val_embeddings.csv'
+val_embeddings_file_path = 'CARL/val_carls_one_per_spec.feather' # '../data/encoder_embedding_predictions/val_embeddings.csv'
 # val_file_path = f'../../scratch/PHIL/val_phils_scaled_to_{scaling_string}_pct.csv'
 # val_embeddings_file_path = f'../../scratch/PHIL/val_embedding_preds_scaled_to_{scaling_string}_pct.feather'
 
-test_file_path = '../../scratch/CARL/test_carls_one_per_spec.feather'
+test_file_path = 'CARL/test_carls_one_per_spec.feather'
 # test_file_path = '../../scratch/test_data.feather'
-test_embeddings_file_path = '../data/encoder_embedding_predictions/test_embeddings.csv'
+test_embeddings_file_path = 'CARL/test_carls_one_per_spec.feather' # '../data/encoder_embedding_predictions/test_embeddings.csv'
 # test_file_path = f'../../scratch/PHIL/test_phils_scaled_to_{scaling_string}_pct.csv'
 # test_embeddings_file_path = f'../../scratch/PHIL/test_embedding_preds_scaled_to_{scaling_string}_pct.feather'
-test_avg_bkg_file_path = '../../scratch/test_avg_bkg.csv'
+test_avg_bkg_file_path = None  # '../../scratch/test_avg_bkg.csv' (not present, so set to None)
 
 sorted_chem_names = ['DEB','DEM','DMMP','DPM','DtBP','JP8','MES','TEPO']
-
-config = {
-    'wandb_entity': 'catemerfeld',
-    'wandb_project': 'ims_encoder_decoder',
-    'gpu':True,
-    'threads':1,
-}
 
 if architecture == 'group_generator':
     chem_groups = [['DMMP', 'TEPO'], ['DEM', 'DPM', 'DEB'], ['DtBP', 'MES']]
@@ -186,9 +187,11 @@ for group in chem_groups:
 
         best_hyperparameters = f.train_generator(
             train_data, val_data, test_data, device, config,
-            wandb_kwargs, model_hyperparams, sorted_chem_names,
-            generator_save_path, save_plots_to_wandb=True,
-            early_stop_threshold=wandb_kwargs['early stopping threshold'], 
+            None,  # wandb_kwargs (not used, pass None)
+            model_hyperparams, sorted_chem_names,
+            generator_save_path,  # generator_path argument
+            save_plots_to_wandb=False,  # set to False
+            early_stop_threshold=early_stopping_threshold, 
             num_plots=num_plots, model_type=model_type, pretrained_model_path=generator_load_path,
             carl_or_spec=target_type
         )
@@ -242,7 +245,7 @@ for group in chem_groups:
 
 
         ##############
-        if target_type == 'CARL':
+        if target_type == 'CARL' and test_avg_bkg_file_path is not None:
             test_avg_bkg = pd.read_csv(test_avg_bkg_file_path)
             test_avg_bkg.drop(columns=['Unnamed: 0'], inplace=True)
 
